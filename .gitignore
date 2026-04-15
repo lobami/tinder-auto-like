@@ -5,3 +5,4 @@ __pycache__/
 stats.json
 session.json
 .venv/
+browser_profile/

@@ -1,40 +1,6 @@
-# Tinder Auto Like Bot
+# 🤖 Tinder Auto Like Bot
 
-Bot que abre Tinder en el navegador y después de un delay configurable empieza a dar like automáticamente usando la tecla de flecha derecha.
-
-## Requisitos
-
-- Python 3.8+
-- Google Chrome o Brave
-- Node.js (para playwright)
-
-## Instalación
-
-```bash
-pip install -r requirements.txt
-playwright install chromium
-```
-
-## Configuración
-
-Copia `.env.example` a `.env` y completa tus credenciales:
-
-```bash
-cp .env.example .env
-```
-
-## Variables de entorno
-
-| Variable          | Descripción                              | Default |
-|------------------|------------------------------------------|---------|
-| `EMAIL`          | Email de Facebook para login            | -       |
-| `PASSWORD`       | Contraseña de Facebook                  | -       |
-| `BROWSER`        | `chrome` o `brave`                      | `chrome`|
-| `DELAY`          | Segundos de espera antes de empezar     | `60`    |
-| `SWIPE_DELAY_MIN`| Minimo segundos entre cada swipe        | `0.3`   |
-| `SWIPE_DELAY_MAX`| Maximo segundos entre cada swipe        | `1.2`   |
-| `BREAK_MIN`      | Minimo minutos de pausa anti-baneo       | `30`    |
-| `BREAK_MAX`      | Maximo minutos de pausa anti-baneo       | `60`    |
+Bot simple que abre Tinder y da like automáticamente.
 
 ## Uso
 
@@ -42,8 +8,23 @@ cp .env.example .env
 python main.py
 ```
 
-Presiona `Ctrl+C` para detener.
+**Listo!** El script:
+- Instala dependencias automáticamente (primera vez)
+- Abre Chrome con tu perfil guardado
+- Espera a que hagas login manualmente
+- Empieza a dar like automáticamente
+- Presiona `Ctrl+C` para detener
 
-## Disclaimer
+## Características
 
-Usar responsablemente y en accordance con los términos de servicio de Tinder.
+- 🔄 Auto-instalación de dependencias
+- 🔄 Usa tu perfil de Chrome (login persiste)
+- 🤖 Auto-like con delays variables anti-baneo
+- ☕ Pausas automáticas
+- 📊 Estadísticas guardadas
+- 🎉 Detecta matches
+
+## Archivos
+
+- `browser_profile/` - Tu perfil de Chrome
+- `stats.json` - Estadísticas

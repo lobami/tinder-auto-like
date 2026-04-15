@@ -1,134 +1,167 @@
-from playwright.sync_api import sync_playwright
-from dotenv import load_dotenv
-import os
-import time
-import random
+#!/usr/bin/env python3
+"""Tinder Auto Like Bot - Auto-instalador"""
+import subprocess
 import sys
+import os
+from pathlib import Path
 
-load_dotenv()
+RUNNING_FROM_VENV = len(sys.argv) > 1 and sys.argv[1] == "RUNNING"
 
-EMAIL = os.getenv("EMAIL")
-PASSWORD = os.getenv("PASSWORD")
-SESSION_FILE = os.getenv("SESSION_FILE", "session.json")
-BROWSER = os.getenv("BROWSER", "chrome")
-DELAY = int(os.getenv("DELAY", 60))
-SWIPE_DELAY_MIN = float(os.getenv("SWIPE_DELAY_MIN", 3))
-SWIPE_DELAY_MAX = float(os.getenv("SWIPE_DELAY_MAX", 15))
-BREAK_MIN = int(os.getenv("BREAK_MIN", 30))
-BREAK_MAX = int(os.getenv("BREAK_MAX", 60))
+def check_and_install():
+    venv_python = Path(".venv/bin/python3")
+    if not venv_python.exists():
+        print("[*] Creando virtual environment...")
+        subprocess.run([sys.executable, "-m", "venv", ".venv"], check=True)
+    python = str(venv_python)
+    print("[*] Instalando dependencias...")
+    subprocess.run([python, "-m", "pip", "install", "playwright", "python-dotenv"], check=True)
+    subprocess.run([python, "-m", "playwright", "install", "chromium"], check=True)
+    print("[✓] Dependencias listas!")
+    return python
 
-
-PROFILE_PATH = os.path.join(os.path.dirname(__file__), "browser_profile")
-SESSION_FILE = os.path.join(os.path.dirname(__file__), "session.json")
-
-
-def get_browser_context(browser_type, headless=False):
-    if BROWSER == "brave":
-        return browser_type.launch(channel="brave", headless=headless, user_data_dir=PROFILE_PATH)
-    return browser_type.launch(channel="chrome", headless=headless, user_data_dir=PROFILE_PATH)
-
-
-def login_via_facebook(driver):
-    driver.click('[data-testid="loginBtn"]')
-    time.sleep(2)
-
-    driver.click('[data-testid="facebook"]')
-    time.sleep(3)
-
-    for handle in driver.context.handles:
-        if "facebook" in handle.url:
-            driver.switch_to_handle(handle)
-            break
-
-    driver.fill("#email", EMAIL)
-    driver.fill("#pass", PASSWORD)
-    driver.click("#loginbutton")
-    time.sleep(3)
-
-    driver.switch_to_handle(driver.context.handles[0])
-    time.sleep(5)
-
-
-def allow_location(driver):
-    try:
-        driver.click('[aria-label="Allow"]')
-        time.sleep(2)
-    except Exception:
-        pass
-
-
-def dismiss_popups(driver):
-    try:
-        driver.click('[data-testid="modalDismiss"]')
-        time.sleep(1)
-    except Exception:
-        pass
-
-
-def swipe_right(driver):
-    driver.keyboard.press("ArrowRight")
-
-
-def random_swipe_delay():
-    return random.uniform(SWIPE_DELAY_MIN, SWIPE_DELAY_MAX)
-
-
-def random_break_duration():
-    return random.randint(BREAK_MIN, BREAK_MAX)
-
-
-def format_time(seconds):
-    if seconds >= 3600:
-        return f"{seconds // 3600}h { (seconds % 3600) // 60}m"
-    return f"{seconds // 60}m {seconds % 60}s"
-
-
-def main():
-    print(f"[*] Waiting {DELAY} seconds before starting...")
-    time.sleep(DELAY)
-
-    print("[*] Starting auto-like bot...")
+def run_bot():
+    from playwright.sync_api import sync_playwright
+    import time
+    import random
+    import json
+    
+    PROFILE_PATH = Path(__file__).parent / "browser_profile"
+    STATS_FILE = Path(__file__).parent / "stats.json"
+    
+    def load_stats():
+        if STATS_FILE.exists():
+            try:
+                with open(STATS_FILE) as f:
+                    return json.load(f)
+            except:
+                pass
+        return {"total_swipes": 0, "total_matches": 0, "daily_likes": 0}
+    
+    def save_stats(stats):
+        with open(STATS_FILE, 'w') as f:
+            json.dump(stats, f, indent=2)
+    
+    def update_stats(key, value=1):
+        stats = load_stats()
+        stats[key] = stats.get(key, 0) + value
+        save_stats(stats)
+    
+    def human_delay():
+        """Delay balanceado - rápido pero humano"""
+        r = random.random()
+        if r < 0.5: 
+            # 50% - rápido (1-4s) - típico de ver perfil rápido
+            return random.uniform(1.0, 4.0)
+        elif r < 0.8: 
+            # 30% - normal (4-10s) - leer bio
+            return random.uniform(4.0, 10.0)
+        elif r < 0.95: 
+            # 15% - lento (10-20s) - leer más
+            return random.uniform(10.0, 20.0)
+        else: 
+            # 5% - pausa (20-35s) - "pensar"
+            return random.uniform(20.0, 35.0)
+    
+    def break_duration():
+        """Break entre ráfagas (10-25 min)"""
+        return random.uniform(10 * 60, 25 * 60)
+    
+    stats = load_stats()
+    print("=" * 50)
+    print("  🤖 TINDER AUTO-LIKE BOT")
+    print("  Anti-Ban Edition")
+    print("=" * 50)
+    print(f"  Total: {stats.get('total_swipes', 0)} swipes")
+    print(f"  Matches: {stats.get('total_matches', 0)}")
+    print("=" * 50)
+    print()
+    
+    print("[*] Abriendo navegador...")
+    print("[*] Login en Tinder manualmente (primera vez)")
+    print("[*] Presiona Ctrl+C para detener")
+    print()
+    
     try:
         with sync_playwright() as p:
-            browser = get_browser_context(p.chromium)
-            context = browser.new_context(viewport={"width": 1280, "height": 720})
-            driver = context.new_page()
-
-            driver.goto("https://tinder.com")
-            time.sleep(3)
-
-            login_via_facebook(driver)
-            allow_location(driver)
-            dismiss_popups(driver)
-
+            browser = p.chromium.launch_persistent_context(
+                user_data_dir=str(PROFILE_PATH),
+                headless=False,
+                viewport={"width": 1280, "height": 720}
+            )
+            
+            page = browser.pages[0] if browser.pages else browser.new_page()
+            page.goto("https://tinder.com")
+            
+            print("[*] Esperando login...")
+            logged_in = False
+            wait = 0
+            while not logged_in and wait < 300:
+                try:
+                    if page.locator('body').count() > 0 and 'tinder' in page.url.lower():
+                        logged_in = True
+                        print(f"[✓] Login detectado!")
+                        break
+                except:
+                    pass
+                wait += 1
+                if wait % 15 == 0:
+                    print(f"[*] Esperando... ({wait}s)")
+                time.sleep(1)
+            
+            print("[*] 🤖 Bot activo! Swipeando humanamente...")
             swipe_count = 0
-            next_break = random.randint(50, 150)
-
-            print("[*] Bot running. Press Ctrl+C to stop.")
+            burst_count = 0
+            next_break = random.randint(25, 60)  # Break después de 25-60 likes
+            likes_this_session = 0
+            
             while True:
                 try:
-                    swipe_right(driver)
+                    page.keyboard.press("ArrowRight")
                     swipe_count += 1
-                    delay = random_swipe_delay()
+                    burst_count += 1
+                    likes_this_session += 1
+                    update_stats("total_swipes")
+                    update_stats("daily_likes")
+                    
+                    if swipe_count % 10 == 0:
+                        stats = load_stats()
+                        print(f"[*] {swipe_count} swipes | {stats['daily_likes']} hoy | ráfaga: {burst_count}")
+                    
+                    delay = human_delay()
+                    if delay >= 15:
+                        print(f"[*] 🤔 Leyendo perfil... {delay:.0f}s")
                     time.sleep(delay)
-
-                    if swipe_count >= next_break:
-                        break_duration = random_break_duration()
-                        print(f"[*] Break time! Pausing {format_time(break_duration)} (swiped {swipe_count} profiles)")
-                        time.sleep(break_duration)
-                        swipe_count = 0
-                        next_break = random.randint(50, 150)
-                        print("[*] Resuming...")
-
+                    
+                    # Cerrar popups
+                    try:
+                        popups = page.locator('button:has-text("No Thanks"), button:has-text("Maybe Later"), [aria-label="Allow"]')
+                        if popups.count() > 0:
+                            popups.first.click()
+                            time.sleep(0.3)
+                    except:
+                        pass
+                    
+                    # Break periódico
+                    if burst_count >= next_break:
+                        pause = break_duration()
+                        print(f"[*] ☕ Break: {pause/60:.0f} min ({burst_count} likes | sesión: {likes_this_session})")
+                        time.sleep(pause)
+                        burst_count = 0
+                        next_break = random.randint(25, 60)
+                        page.goto("https://tinder.com")
+                        time.sleep(2)
+                        
                 except Exception as e:
-                    print(f"[*] Profile consumed or error: {e}")
-                    break
-
-            browser.close()
+                    print(f"[*] Error: {e}")
+                    time.sleep(1)
+                    
     except KeyboardInterrupt:
-        print("\n[*] Bot stopped by user.")
-        sys.exit(0)
-
+        print(f"\n[*] Detenido - {swipe_count} swipes en sesión")
+        print(f"[*] Total día: {stats.get('daily_likes', 0)}")
 
 if __name__ == "__main__":
-    main()
+    if RUNNING_FROM_VENV:
+        run_bot()
+    else:
+        python = check_and_install()
+        os.execv(python, [python, sys.argv[0], "RUNNING"])

@@ -2,5 +2,6 @@ __pycache__/
 *.py[cod]
 .env
 *.log
-browser_profile/
+stats.json
 session.json
+.venv/

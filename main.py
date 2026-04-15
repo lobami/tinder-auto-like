@@ -9,6 +9,7 @@ load_dotenv()
 
 EMAIL = os.getenv("EMAIL")
 PASSWORD = os.getenv("PASSWORD")
+SESSION_FILE = os.getenv("SESSION_FILE", "session.json")
 BROWSER = os.getenv("BROWSER", "chrome")
 DELAY = int(os.getenv("DELAY", 60))
 SWIPE_DELAY_MIN = float(os.getenv("SWIPE_DELAY_MIN", 3))
@@ -17,10 +18,14 @@ BREAK_MIN = int(os.getenv("BREAK_MIN", 30))
 BREAK_MAX = int(os.getenv("BREAK_MAX", 60))
 
 
+PROFILE_PATH = os.path.join(os.path.dirname(__file__), "browser_profile")
+SESSION_FILE = os.path.join(os.path.dirname(__file__), "session.json")
+
+
 def get_browser_context(browser_type, headless=False):
     if BROWSER == "brave":
-        return browser_type.launch(channel="brave", headless=headless)
-    return browser_type.launch(channel="chrome", headless=headless)
+        return browser_type.launch(channel="brave", headless=headless, user_data_dir=PROFILE_PATH)
+    return browser_type.launch(channel="chrome", headless=headless, user_data_dir=PROFILE_PATH)
 
 
 def login_via_facebook(driver):

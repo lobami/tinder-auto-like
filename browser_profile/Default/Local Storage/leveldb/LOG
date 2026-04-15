@@ -1,6 +1,0 @@
-2026/04/14-23:20:24.651 369491 Reusing MANIFEST /Users/loth/git-repos/projects/tinder-auto-like/browser_profile/Default/Local Storage/leveldb/MANIFEST-000001
-2026/04/14-23:20:24.655 369491 Recovering log #3
-2026/04/14-23:20:24.655 369491 Reusing old log /Users/loth/git-repos/projects/tinder-auto-like/browser_profile/Default/Local Storage/leveldb/000003.log 
-2026/04/14-23:21:24.657 369494 Level-0 table #5: started
-2026/04/14-23:21:24.660 369494 Level-0 table #5: 27662 bytes OK
-2026/04/14-23:21:24.665 369494 Delete type=0 #3

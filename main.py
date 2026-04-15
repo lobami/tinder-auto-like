@@ -2,6 +2,7 @@ from playwright.sync_api import sync_playwright
 from dotenv import load_dotenv
 import os
 import time
+import random
 import sys
 
 load_dotenv()
@@ -10,7 +11,10 @@ EMAIL = os.getenv("EMAIL")
 PASSWORD = os.getenv("PASSWORD")
 BROWSER = os.getenv("BROWSER", "chrome")
 DELAY = int(os.getenv("DELAY", 60))
-LIKE_DELAY = float(os.getenv("LIKE_DELAY", 0.5))
+SWIPE_DELAY_MIN = float(os.getenv("SWIPE_DELAY_MIN", 0.3))
+SWIPE_DELAY_MAX = float(os.getenv("SWIPE_DELAY_MAX", 1.2))
+BREAK_MIN = int(os.getenv("BREAK_MIN", 30))
+BREAK_MAX = int(os.getenv("BREAK_MAX", 60))
 
 
 def get_browser_context(browser_type, headless=False):
@@ -60,8 +64,22 @@ def swipe_right(driver):
     driver.keyboard.press("ArrowRight")
 
 
+def random_swipe_delay():
+    return random.uniform(SWIPE_DELAY_MIN, SWIPE_DELAY_MAX)
+
+
+def random_break_duration():
+    return random.randint(BREAK_MIN, BREAK_MAX)
+
+
+def format_time(seconds):
+    if seconds >= 3600:
+        return f"{seconds // 3600}h { (seconds % 3600) // 60}m"
+    return f"{seconds // 60}m {seconds % 60}s"
+
+
 def main():
-    print(f"[*] Waiting {DELAY} seconds before starting likes...")
+    print(f"[*] Waiting {DELAY} seconds before starting...")
     time.sleep(DELAY)
 
     print("[*] Starting auto-like bot...")
@@ -78,11 +96,25 @@ def main():
             allow_location(driver)
             dismiss_popups(driver)
 
+            swipe_count = 0
+            next_break = random.randint(50, 150)
+
             print("[*] Bot running. Press Ctrl+C to stop.")
             while True:
                 try:
                     swipe_right(driver)
-                    time.sleep(LIKE_DELAY)
+                    swipe_count += 1
+                    delay = random_swipe_delay()
+                    time.sleep(delay)
+
+                    if swipe_count >= next_break:
+                        break_duration = random_break_duration()
+                        print(f"[*] Break time! Pausing {format_time(break_duration)} (swiped {swipe_count} profiles)")
+                        time.sleep(break_duration)
+                        swipe_count = 0
+                        next_break = random.randint(50, 150)
+                        print("[*] Resuming...")
+
                 except Exception as e:
                     print(f"[*] Profile consumed or error: {e}")
                     break

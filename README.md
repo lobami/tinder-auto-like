@@ -25,13 +25,16 @@ cp .env.example .env
 
 ## Variables de entorno
 
-| Variable     | Descripción                              | Default |
-|-------------|------------------------------------------|---------|
-| `EMAIL`     | Email de Facebook para login            | -       |
-| `PASSWORD`  | Contraseña de Facebook                  | -       |
-| `BROWSER`   | `chrome` o `brave`                      | `chrome`|
-| `DELAY`     | Segundos de espera antes de empezar     | `60`    |
-| `LIKE_DELAY`| Segundos entre cada like                | `0.5`   |
+| Variable          | Descripción                              | Default |
+|------------------|------------------------------------------|---------|
+| `EMAIL`          | Email de Facebook para login            | -       |
+| `PASSWORD`       | Contraseña de Facebook                  | -       |
+| `BROWSER`        | `chrome` o `brave`                      | `chrome`|
+| `DELAY`          | Segundos de espera antes de empezar     | `60`    |
+| `SWIPE_DELAY_MIN`| Minimo segundos entre cada swipe        | `0.3`   |
+| `SWIPE_DELAY_MAX`| Maximo segundos entre cada swipe        | `1.2`   |
+| `BREAK_MIN`      | Minimo minutos de pausa anti-baneo       | `30`    |
+| `BREAK_MAX`      | Maximo minutos de pausa anti-baneo       | `60`    |
 
 ## Uso
 
